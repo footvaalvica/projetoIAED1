@@ -8,11 +8,12 @@
 
 typedef char Act[ACT_SIZE];
 typedef char User[USER_SIZE];
+typedef char Desc[DESC_SIZE];
 
 /*Declares the struct*/
 typedef struct task {
     int id;
-    char desc[DESC_SIZE];
+    Desc desc;
     User user;
     Act act;
     int dur;
@@ -21,7 +22,7 @@ typedef struct task {
 
 /* declares global variables */
 
-Task tasks[MAX_ID];
+Task tasks[MAX_ID+1];
 Act acts[MAX_ACT] = {{"TO DO"}, {"IN PROGRESS"}, {"DONE"}, {""}, {""}, {""}, {""}, {""}, {""}, {""}};
 User users[MAX_USERS];
 int actCounter = 3;
@@ -29,9 +30,29 @@ int userCounter = 0;
 int id = 1;
 int time = 0;
 
-int task () {
+void alphabeticInsertionSort(Desc arr[], int n)
+{
+    int i, j;
+    Desc key;
+    for (i = 1; i < n; i++) {
+        strcpy(key, arr[i]);
+        j = i - 1;
+ 
+        /* Move elements of arr[0..i-1], that are
+          greater than key, to one position ahead
+          of their current position */
+        while (j >= 0 && (strcmp(arr[j], key) > 0)) {
+            strcpy(arr[j + 1], arr[j]);
+            j = j - 1;
+        }
+        strcpy(arr[j + 1],key);
+    }
+}
+
+int task() 
+{
     Task local;
-    int dur = 0, i = 0, l;
+    int dur = 0, i = 0, l, k;
     char desc[DESC_SIZE], *token, variables[MAX_STRING_SIZE];
     const char s[2] = " "; /*const para o strtok*/
 
@@ -43,6 +64,9 @@ int task () {
 
     /* buscar o input */
     fgets(variables, MAX_STRING_SIZE, stdin);
+
+    /* inicializar desc a 0 */
+    strcpy(desc, "");
     
     /* analisar o input
     ainda nao sei como é que vou lidar com isto, eles nao especificam */
@@ -59,14 +83,16 @@ int task () {
         token = strtok(NULL, s);
     }
 
-    /*remover ultimo white space da descrição */
+    /*remover \n da descrição*/
     for (l = 0; desc[l] != '\0'; l++) {}
-    desc[l-1] = '\0';
-
+    desc[l-2] = '\0';
+    
     /* procurar duplicate descriptions */
-    for (i=1; i <= id; i++) {
-        if (strcmp(tasks[i].desc, desc) == 0) {
+    for (k = 1; k <= id; k++) {
+        if (strcmp(tasks[k].desc, desc) == 0) {
             printf("duplicate description\n");
+            /* n sei pq e q tenho q fazer isto (?????) */
+            strcpy(desc, "");
             return -1;
         }
     }
@@ -77,16 +103,69 @@ int task () {
     strcpy(local.user, "0");
     strcpy(local.act, "TO DO");
     local.dur = dur;
-    local.inst = time;
+    local.inst = 0;
+
+    /* n sei pq e q tenho q fazer isto (?????) */
+    strcpy(desc, "");
 
     /*colocação da tarefa na tabela*/
     tasks[id] = local;
     printf("task %d\n", id);
-    id++;
+    id++;    
     return 0;
 }
 
-int increaser() {
+int tasklister()
+{
+    int i = 0, l, k, h;
+    int ids[MAX_ID+1];
+    Desc descs[MAX_ID+1];
+    char *token, variables[MAX_STRING_SIZE];
+    const char s[2] = " "; /*const para o strtok*/
+
+    /* buscar o input */
+    fgets(variables, MAX_STRING_SIZE, stdin);    
+    
+    /*remover \n da descrição*/
+    for (l = 0; variables[l] != '\0'; l++) {}
+    variables[l-1] = '\0';
+    
+    if (strcmp(variables, "") == 0) {
+        /*adicionar alphabetic sort*/
+        for (k = 1; k <= id; k++) {
+            strcpy(descs[k], tasks[k].desc);
+        }
+        
+        /*dar o sort alphabetic */
+        alphabeticInsertionSort(descs, id);
+
+        for (k = 1; k <= id; k++) {
+            for (h = 1; h < id; h++) {
+                if (strcmp(descs[k], tasks[h].desc) == 0) {
+                    printf("%d %s #%d %s\n", tasks[h].id, tasks[h].act, tasks[h].dur, tasks[h].desc);
+                }
+            }
+        }
+    return 0;
+    } else {
+        /* analisar o input
+        ainda nao sei como é que vou lidar com isto, eles nao especificam */
+        token = strtok(variables, s);
+        while(token != NULL) {
+            ids[i] = atoi(token);
+            i++;
+            token = strtok(NULL, s);
+        }
+        for (k = 0; k < (id-1); k++) {
+            printf("%d %s #%d %s\n", ids[k], tasks[ids[k]].act, tasks[ids[k]].dur, tasks[ids[k]].desc);
+        }
+
+        return 0;
+    }
+}
+
+int increaser()
+{
     int i;
     char variables[MAX_STRING_SIZE];
 
@@ -106,7 +185,7 @@ int increaser() {
         }
     }
 
-    if (atoi(variables) <= 0) {
+    if (atoi(variables) < 0) {
         printf("invalid time\n");
         return -1;
     }
@@ -117,7 +196,8 @@ int increaser() {
     return 0;
 }
 
-int activities() {
+int activities() 
+{
     int i = 0, l;
     char variables[MAX_STRING_SIZE];
 
@@ -169,7 +249,8 @@ int activities() {
     return 0;
 }
 
-int utilizador() {
+int utilizador() 
+{
     int i = 0, l;
     char variables[MAX_STRING_SIZE];
 
@@ -214,9 +295,65 @@ int utilizador() {
     return 0;
 }
 
-int listtasks() {
+int taskmover()
+{
+    int i = 0, l, idLocal;
+    char *token, variables[MAX_STRING_SIZE];
+    Act act;
+    User user;
+    const char s[2] = " "; /*const para o strtok*/
+
+    /* buscar o input */
+    fgets(variables, MAX_STRING_SIZE, stdin);
+
+    /*inicializar act a 0*/
+    strcpy(act, "");
+    /* analisar o input
+    ainda nao sei como é que vou lidar com isto, eles nao especificam */
+    token = strtok(variables, s);
+    while(token != NULL) {
+        if (i == 0) {
+            idLocal = atoi(token);
+        } else if (i == 1) {
+            strcpy(user, token);
+        } else {
+            strcat(act, token);
+            /*adds white space*/
+            strcat(act, " ");
+        }
+        i++;
+        token = strtok(NULL, s);
+    }
+
+    /*remover \n do act*/
+    for (l = 0; act[l] != '\0'; l++) {}
+    act[l-2] = '\0';
+
+    if (idLocal >= id) {
+        printf("no such task\n");
+        strcpy(act, "");
+        return -1;
+    }
+
+    if strcmp(act, "TO DO") {
+        printf("task already started\n");
+        strcpy(act, "");
+        return -1;
+    }
+
+    
+    
+    strcpy(act, "");
+    return 0;
+}
+
+/*ver esta função melhor
+falta dar sort do output*/
+int listtasks() 
+{
     int i = 0, l;
     char variables[MAX_STRING_SIZE];
+    int time[MAX_ID+1];
 
     fgets(variables, MAX_STRING_SIZE, stdin);
 
@@ -232,7 +369,7 @@ int listtasks() {
     /* maybe preciso de criar um vetor? que pita */
     for (i = 1; i <= id; i++) {
         if (strcmp(tasks[i].act,variables) == 0) {
-            printf("%d %d %s", tasks[i].id, tasks[i].inst, tasks[i].desc);
+            printf("%d %d %s\n", tasks[i].id, tasks[i].inst, tasks[i].desc);
         }
     }
 

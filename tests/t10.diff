@@ -1,14 +1,24 @@
-2a3,15
-> 5
+4c4
+< 1 TO DO #1 proj
+---
 > 1 IN PROGRESS #1 proj
-> 8
+6,7c6,8
+< 1 TO DO #1 proj
+< user already exists
+---
 > 1 3 proj
 > duration=5 slack=4
 > 1 DONE #1 proj
-> 11
+9,10c10,11
+< user already exists
+< 1 TO DO #1 proj
+---
 > 1 DEBUG #1 proj
 > 1 3 proj
-> 13
+12,13c13,15
+< user already exists
+< 1 TO DO #1 proj
+---
 > duration=10 slack=9
 > 1 3 proj
 > 1 DONE #1 proj

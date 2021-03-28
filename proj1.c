@@ -8,49 +8,38 @@ int main ()
 {   
     char command;
     /* Reads which command is going to be executed */
-    scanf("%c", &command);
-    switch(command)
-        {
-            case 'q':
-                return 0;
-                break;
-
+    do {
+        scanf("%c", &command);
+        switch(command) {
             case 't':
                 task();
-                main();
                 break;
 
             case 'l':
-                return 0;
+                tasklister();
                 break;
 
             case 'n':
                 increaser();
-                main();
                 break;
 
             case 'u':
                 utilizador();
-                main();
                 break;
-            
+                
             case 'm':
-                return 0;
+                taskmover();
                 break;
 
             case 'd':
                 listtasks();
-                main();
                 break;
 
             case 'a':
                 activities();
-                main();
                 break;
-
-            /* qnd o commando n é dos q queriamos voltar a chamar a função*/
-            default:
-                main();
         }
+    }
+    while(command != 'q');
     return 0;    
 }
