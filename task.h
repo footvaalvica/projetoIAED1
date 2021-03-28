@@ -6,6 +6,7 @@
 #define MAX_ACT 10
 #define MAX_USERS 50
 
+typedef enum {FALSE = 0, TRUE} boolean;
 typedef char Act[ACT_SIZE];
 typedef char User[USER_SIZE];
 typedef char Desc[DESC_SIZE];
@@ -115,6 +116,7 @@ int task()
     return 0;
 }
 
+/* falta implementar error checking nesta */
 int tasklister()
 {
     int i = 0, l, k, h;
@@ -154,13 +156,16 @@ int tasklister()
         while(token != NULL) {
             ids[i] = atoi(token);
             i++;
+            if (atoi(token) >= id) {
+                printf("%d: no such task\n", id);
+                return -1;
+            }
             token = strtok(NULL, s);
         }
         for (k = 0; k < (id-1); k++) {
             printf("%d %s #%d %s\n", ids[k], tasks[ids[k]].act, tasks[ids[k]].dur, tasks[ids[k]].desc);
         }
-
-        return 0;
+    return 0;
     }
 }
 
@@ -297,7 +302,9 @@ int utilizador()
 
 int taskmover()
 {
-    int i = 0, l, idLocal;
+    int i = 0, l, idLocal, k;
+    boolean noActFound = TRUE;
+    boolean noUserFound = TRUE;
     char *token, variables[MAX_STRING_SIZE];
     Act act;
     User user;
@@ -335,13 +342,44 @@ int taskmover()
         return -1;
     }
 
-    if strcmp(act, "TO DO") {
+    if (strcmp(act, "TO DO") == 0) {
         printf("task already started\n");
         strcpy(act, "");
         return -1;
     }
 
-    
+    for (k = 0; k < MAX_ACT; k++) {
+        if (strcmp(acts[k], act) == 0){
+            noActFound = FALSE;
+        }
+    }
+
+    if (noActFound == TRUE) {
+        printf("no such activity\n");
+        strcpy(act, "");
+        return -1;
+    }
+
+    for (k = 0; k < MAX_USERS; k++) {
+        if (strcmp(users[k], user) == 0){
+            noUserFound = FALSE;
+        }
+    }
+
+    if (noUserFound == TRUE) {
+        printf("no such user\n");
+        strcpy(act, "");
+        return -1;
+    }
+
+    /* mudar valores da tarefa*/
+    strcpy(tasks[idLocal].user, user);
+    strcpy(tasks[idLocal].act, act);
+    tasks[idLocal].inst = time;
+
+    if (strcmp(act, "DONE") == 0) {
+        printf("duration=%d slack=%d\n", tasks[idLocal].inst, tasks[idLocal].inst - tasks[idLocal].dur);
+    }
     
     strcpy(act, "");
     return 0;
