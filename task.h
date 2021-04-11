@@ -5,11 +5,12 @@
 #define ACT_SIZE 20
 #define MAX_ACT 10
 #define MAX_USERS 50
+#define ERROR -1
 
 typedef enum {FALSE = 0, TRUE} boolean;
-typedef char Act[ACT_SIZE];
-typedef char User[USER_SIZE];
-typedef char Desc[DESC_SIZE];
+typedef char Act[ACT_SIZE+1];
+typedef char User[USER_SIZE+1];
+typedef char Desc[DESC_SIZE+1];
 
 /*Declares the struct*/
 typedef struct task {
@@ -19,17 +20,40 @@ typedef struct task {
     Act act;
     int dur;
     int inst;
+    int toDoInst;
 } Task;
 
 /* declares global variables */
 
 Task tasks[MAX_ID+1];
 Act acts[MAX_ACT] = {{"TO DO"}, {"IN PROGRESS"}, {"DONE"}, {""}, {""}, {""}, {""}, {""}, {""}, {""}};
-User users[MAX_USERS];
+User users[MAX_USERS+1];
 int actCounter = 3;
 int userCounter = 0;
 int id = 1;
 int time = 0;
+
+/* ok ja tenho as funções quase todas */
+
+void timeInsertionSort(Task arr[], int n)
+{
+    int i, key, j;
+    for (i = 1; i < n; i++) {
+        key = arr[i].toDoInst;
+        j = i - 1;
+ 
+        /* Move elements of arr[0..i-1], that are
+          greater than key, to one position ahead
+          of their current position */
+        while (j >= 0 && arr[j].toDoInst > key) {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1].toDoInst = key;
+    }
+}
+
+/*implementar sort alphabetico */
 
 void alphabeticInsertionSort(Desc arr[], int n)
 {
@@ -94,11 +118,18 @@ int task()
             printf("duplicate description\n");
             /* n sei pq e q tenho q fazer isto (?????) */
             strcpy(desc, "");
-            return -1;
+            return ERROR;
         }
     }
 
-    /* criação da tarefa*/
+    /* ver se dur >= 0 */
+    if (dur < 0) {
+        printf("invalid duration\n");
+        return ERROR;
+    }
+
+
+    /* criação da tarefa */
     local.id = id;  
     strcpy(local.desc, desc);
     strcpy(local.user, "0");
@@ -116,7 +147,6 @@ int task()
     return 0;
 }
 
-/* falta implementar error checking nesta */
 int tasklister()
 {
     int i = 0, l, k, h;
@@ -372,13 +402,17 @@ int taskmover()
         return -1;
     }
 
+    if (strcmp(tasks[idLocal].act, "TO DO") == 0) {
+        tasks[idLocal].toDoInst = time;
+    }
+
     /* mudar valores da tarefa*/
     strcpy(tasks[idLocal].user, user);
     strcpy(tasks[idLocal].act, act);
     tasks[idLocal].inst = time;
 
     if (strcmp(act, "DONE") == 0) {
-        printf("duration=%d slack=%d\n", tasks[idLocal].inst, tasks[idLocal].inst - tasks[idLocal].dur);
+        printf("duration=%d slack=%d\n", tasks[idLocal].inst - tasks[idLocal].toDoInst, (tasks[idLocal].inst - tasks[idLocal].toDoInst) - tasks[idLocal].dur);
     }
     
     strcpy(act, "");
@@ -389,9 +423,12 @@ int taskmover()
 falta dar sort do output*/
 int listtasks() 
 {
-    int i = 0, l;
+    int i = 0, l, k;
+    int h = 1; 
+    int time [MAX_ID+1];
+    Task localVector[MAX_ID+1];
+    boolean noActFound = TRUE;
     char variables[MAX_STRING_SIZE];
-    int time[MAX_ID+1];
 
     fgets(variables, MAX_STRING_SIZE, stdin);
 
@@ -402,14 +439,22 @@ int listtasks()
     for (l = 0; variables[l] != '\0'; l++) {}
     variables[l-1] = '\0';
 
-    /* verificar se ha alguma activity q de match */
-
-    /* maybe preciso de criar um vetor? que pita */
-    for (i = 1; i <= id; i++) {
-        if (strcmp(tasks[i].act,variables) == 0) {
-            printf("%d %d %s\n", tasks[i].id, tasks[i].inst, tasks[i].desc);
+    for (i = 1; i < id; i++) {
+        if (strcmp(tasks[i].act, variables) == 0) {
+            localVector[h] = tasks[i];
+            h++;
         }
     }
+
+    /*sort */
+    timeInsertionSort(localVector, h);
+
+    for (i = 0; i < h; i++) {
+        if (strcmp(localVector[i].act, variables) == 0) {
+            printf("%d %d %s\n", localVector[i].id, localVector[i].toDoInst, localVector[i].desc);
+        }
+    }
+
 
     return 0;
 }
