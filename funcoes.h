@@ -37,7 +37,7 @@ typedef char Desc[DESC_SIZE+1];
   Representa um produto constituida por id, descricao, utilizador, atividade,
   duracao, e instante de inicio
 */
-typedef struct task {
+typedef struct {
     int id;
     Desc desc;
     User user;
@@ -47,6 +47,16 @@ typedef struct task {
     int toDoInst;
 } Task;
 
+/* Time Sort defines */
+#define key(A) (A.toDoInst)
+#define less(A,B) (key(A) < key(B))
+
+/* Alphabetic Sort defines */
+#define keyAlpha(A) (A.desc)
+#define lessAlpha(A,B) (strcmp(keyAlpha(A), keyAlpha(B)) < 0)
+
+/* array for merge sort */
+Task aux[MAX_ID];
 /*array of tasks*/
 Task tasks[MAX_ID+1];
 /*array of activity strings */
@@ -64,10 +74,12 @@ int id = 1;
 int time = 0;
 
 /* prototypes */
-void timeInsertionSort(Task arr[], int n);
-void alphabeticInsertionSort(Desc arr[], int n);
+void timeSort(Task a[], int left, int right);
+void merge(Task a[], int left, int m, int right);
+void alphabeticInsertionSort(Task a[], int left, int right);
+int tasklisterErrorCheck(int it, char *user, char *act);
 int task();
-int tasklister();
+int taskLister();
 int increaser();
 int activities();
 int utilizador();
@@ -77,43 +89,46 @@ int listtasks();
 /* FUNCTIONS */
 
 /* ok ja tenho as funções quase todas :D */
-/* mudar os sorts para ficarem como os do prof */
-void timeInsertionSort(Task arr[], int n)
+/* mudei os sorts para ficarem como os do prof */
+void timeSort(Task a[], int left, int right)
 {
-    int i, key, j;
-    for (i = 1; i < n; i++) {
-        key = arr[i].toDoInst;
-        j = i - 1;
- 
-        /* Move elements of arr[0..i-1], that are
-          greater than key, to one position ahead
-          of their current position */
-        while (j >= 0 && arr[j].toDoInst > key) {
-            arr[j + 1] = arr[j];
-            j = j - 1;
-        }
-        arr[j + 1].toDoInst = key;
+    int m = (right+left)/2;
+    if (right <= left) return;
+    timeSort(a, left, m);
+    timeSort(a, m+1, right);
+    merge(a, left, m, right);
+}
+
+/* merge sort merge function */
+void merge(Task a[], int left, int m, int right) {
+    int i, j, k;
+    for (i = m+1; i > left; i--)
+        aux[i-1] = a[i-1];
+    for (j = m; j < right; j++)
+        aux[right+m-j] = a[j+1];
+    for (k = left; k <= right; k++) {
+        if (less(aux[j], aux[i]) || i == m+1)
+            a[k] = aux[j--];
+        else
+            a[k] = aux[i++];
     }
 }
 
-/*change this function if possible, because it sorts a new array 
-instead of sorting the already existing one, it's just a waste of resouces*/
-void alphabeticInsertionSort(Desc arr[], int n)
+void alphabeticInsertionSort(Task a[], int left, int right)
 {
     int i, j;
-    Desc key;
-    for (i = 1; i < n; i++) {
-        strcpy(key, arr[i]);
+    for (i = left+1; i <= right; i++) {
+        Task v = a[i];
         j = i - 1;
  
         /* Move elements of arr[0..i-1], that are
           greater than key, to one position ahead
           of their current position */
-        while (j >= 0 && (strcmp(arr[j], key) > 0)) {
-            strcpy(arr[j + 1], arr[j]);
-            j = j - 1;
+        while (j >= left && lessAlpha(v, a[j])) {
+            a[j + 1] = a[j];
+            j--;
         }
-        strcpy(arr[j + 1],key);
+        a[j + 1] = v;
     }
 }
 
@@ -198,7 +213,7 @@ int tasklister()
 {
     int i = 0, l, k, h;
     int ids[MAX_ID+1];
-    Desc descs[MAX_ID+1];
+    Task localVector[MAX_ID+1];
     char *token, variables[MAX_STRING_SIZE];
     const char s[2] = " "; /*const para o strtok*/
 
@@ -212,15 +227,15 @@ int tasklister()
     if (strcmp(variables, "") == 0) {
         /*adicionar alphabetic sort*/
         for (k = 1; k <= id; k++) {
-            strcpy(descs[k], tasks[k].desc);
+            localVector[k] = tasks[k];
         }
         
         /*dar o sort alphabetic */
-        alphabeticInsertionSort(descs, id);
+        alphabeticInsertionSort(localVector, 0, id);
 
         for (k = 1; k <= id; k++) {
             for (h = 1; h < id; h++) {
-                if (strcmp(descs[k], tasks[h].desc) == 0) {
+                if (strcmp(localVector[k].desc, tasks[h].desc) == 0) {
                     printf("%d %s #%d %s\n", tasks[h].id, tasks[h].act, 
                     tasks[h].dur, tasks[h].desc);
                 }
@@ -236,7 +251,7 @@ int tasklister()
             i++;
             if (atoi(token) >= id) {
                 printf("%d: no such task\n", id);
-                return -1;
+                return ERROR;
             }
             token = strtok(NULL, s);
         }
@@ -265,13 +280,13 @@ int increaser()
     for (i = 0; variables[i] != 0; i++) {
         if (variables[i] == '.') {
             printf("invalid time\n");
-            return -1;
+            return ERROR;
         }
     }
 
     if (atoi(variables) < 0) {
         printf("invalid time\n");
-        return -1;
+        return ERROR;
     }
     
     /* aumentar o global time */
@@ -308,29 +323,29 @@ int activities()
     while (variables[i] != '\0') {
         if (islower(variables[i]) != 0) {
             printf("invalid description\n");
-            return -1;
+            return ERROR;
         }
         i++;
     }
 
     /* too many activities */
-    if (actCounter == (MAX_ACT - 1)) {
+    if (actCounter == MAX_ACT) {
         printf("too many activities\n");
-        return -1;
+        return ERROR;
     }
 
     /* dups */
     for (i = 0; i < actCounter; i++)  {
         if (strcmp(acts[i], variables) == 0) {
             printf("duplicate activity\n");
-            return -1;
+            return ERROR;
         }
     }
 
     /* adding the activity */
     strcpy(acts[actCounter], variables);
     actCounter++;
-    return 0;
+    return SUCCESS;
 }
 
 int utilizador() 
@@ -347,7 +362,8 @@ int utilizador()
     for (l = 0; variables[l] != '\0'; l++) {}
     variables[l-1] = '\0';
 
-    /*proibir de ter whitespaces or maybe not assumo só q o input está correto é ver o q dá*/
+    /*proibir de ter whitespaces or maybe not assumo só q o 
+    input está correto é ver o q dá*/
     
     if (strcmp(variables, "") == 0) {
         /*prints all users */
@@ -368,7 +384,7 @@ int utilizador()
     }    
 
     /* too many users */
-    if (userCounter == (MAX_USERS - 1)) {
+    if (userCounter == (MAX_USERS + 1)) {
         printf("too many users\n");
         return -1;
     }
@@ -382,8 +398,6 @@ int utilizador()
 int taskmover()
 {
     int i = 0, l, idLocal, k;
-    boolean noActFound = TRUE;
-    boolean noUserFound = TRUE;
     char *token, variables[MAX_STRING_SIZE];
     Act act;
     User user;
@@ -415,40 +429,43 @@ int taskmover()
     for (l = 0; act[l] != '\0'; l++) {}
     act[l-2] = '\0';
 
-    if (idLocal >= id) {
+    /* verifica todos os erros */
+
+    if (idLocal >= id || idLocal == 0) {
         printf("no such task\n");
         strcpy(act, "");
-        return -1;
+        return ERROR;
     }
 
     if (strcmp(act, "TO DO") == 0) {
         printf("task already started\n");
         strcpy(act, "");
-        return -1;
+        return ERROR;
     }
 
     for (k = 0; k < MAX_ACT; k++) {
         if (strcmp(acts[k], act) == 0){
-            noActFound = FALSE;
+            goto FOUND;
         }
     }
-
-    if (noActFound == TRUE) {
-        printf("no such activity\n");
-        strcpy(act, "");
-        return -1;
-    }
+    printf("no such activity\n");
+    strcpy(act, "");
+    return ERROR;
+    FOUND:;
 
     for (k = 0; k < MAX_USERS; k++) {
         if (strcmp(users[k], user) == 0){
-            noUserFound = FALSE;
+            goto END;
         }
     }
+    printf("no such user\n");
+    strcpy(act, "");
+    return ERROR;
+    END:;
 
-    if (noUserFound == TRUE) {
-        printf("no such user\n");
+    if (strcmp(tasks[idLocal].act, act) == 0) {
         strcpy(act, "");
-        return -1;
+        return ERROR;
     }
 
     if (strcmp(tasks[idLocal].act, "TO DO") == 0) {
@@ -461,12 +478,15 @@ int taskmover()
     tasks[idLocal].inst = time;
 
     if (strcmp(act, "DONE") == 0) {
-        printf("duration=%d slack=%d\n", tasks[idLocal].inst - tasks[idLocal].toDoInst, (tasks[idLocal].inst - tasks[idLocal].toDoInst) - tasks[idLocal].dur);
+        printf("duration=%d slack=%d\n", 
+        tasks[idLocal].inst - tasks[idLocal].toDoInst, 
+        (tasks[idLocal].inst - tasks[idLocal].toDoInst) - tasks[idLocal].dur);
     }
     
     strcpy(act, "");
-    return 0;
+    return SUCCESS;
 }
+
 
 /* falta dar sort do output alfabeticamente*/
 int listtasks() 
@@ -493,12 +513,20 @@ int listtasks()
     }
 
     /*sort */
-    timeInsertionSort(localVector, h);
+    timeSort(localVector, 0, h);
+
+    /* check if values are equal and sort only if they are*/
+    for (i = 0; i < h; i++) {
+        if (localVector[i].toDoInst == localVector[i+1].toDoInst) {
+            alphabeticInsertionSort(localVector, i, i+1);
+        }
+    }
 
     /* print */
-    for (i = 0; i < h; i++) {
+    for (i = 0; i <= h; i++) {
         if (strcmp(localVector[i].act, variables) == 0) {
-            printf("%d %d %s\n", localVector[i].id, localVector[i].toDoInst, localVector[i].desc);
+            printf("%d %d %s\n", localVector[i].id, 
+            localVector[i].toDoInst, localVector[i].desc);
         }
     }
 

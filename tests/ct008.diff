@@ -1,0 +1,46 @@
+3a4
+> invalid duration
+5d5
+< task 3
+7,12c7,9
+< 3 TO DO #2 b
+< 2 TO DO #0 c
+< 3 TO DO #2 b
+< 0  #0 
+< 0  #0 
+< 2 TO DO #0 c
+---
+> 2 TO DO #2 b
+> 3: no such task
+> 2 TO DO #2 b
+14d10
+< 0  #0 
+16,19c12,16
+< 2 TO DO #0 c
+< 0  #0 
+< 4: no such task
+< 4: no such task
+---
+> 2 TO DO #2 b
+> 45: no such task
+> 56: no such task
+> 2 TO DO #2 b
+> -3: no such task
+26c23
+<       testes
+---
+> testes
+29,30c26
+<       testes
+< task already started
+---
+> testes
+37d32
+< no such user
+40c35
+< no such user
+---
+> duration=45 slack=43
+41a37,38
+> 2 37 b
+> no such activity
