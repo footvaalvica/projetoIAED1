@@ -1,8 +1,11 @@
+/*
+  Ficheiro: proj1.c
+  Autor: Bruno Miguel da Silva Mendes ist199282/al99282
+  Descricao: Ponto de entrada para o projeto de IAED19/20
+*/
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
-#include "task.h"
+#include "funcoes.h"
 
 int main () 
 {   
@@ -18,7 +21,7 @@ int main ()
             case 'l':
                 tasklister();
                 break;
-
+                
             case 'n':
                 increaser();
                 break;

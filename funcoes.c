@@ -1,40 +1,6 @@
-#define MAX_ID 10000
-#define MAX_STRING_SIZE 200
-#define DESC_SIZE 50
-#define USER_SIZE 20
-#define ACT_SIZE 20
-#define MAX_ACT 10
-#define MAX_USERS 50
-#define ERROR -1
+#include "funcoes.h"
 
-typedef enum {FALSE = 0, TRUE} boolean;
-typedef char Act[ACT_SIZE+1];
-typedef char User[USER_SIZE+1];
-typedef char Desc[DESC_SIZE+1];
-
-/*Declares the struct*/
-typedef struct task {
-    int id;
-    Desc desc;
-    User user;
-    Act act;
-    int dur;
-    int inst;
-    int toDoInst;
-} Task;
-
-/* declares global variables */
-
-Task tasks[MAX_ID+1];
-Act acts[MAX_ACT] = {{"TO DO"}, {"IN PROGRESS"}, {"DONE"}, {""}, {""}, {""}, {""}, {""}, {""}, {""}};
-User users[MAX_USERS+1];
-int actCounter = 3;
-int userCounter = 0;
-int id = 1;
-int time = 0;
-
-/* ok ja tenho as funções quase todas */
-
+/* ok ja tenho as funções quase todas :D */
 void timeInsertionSort(Task arr[], int n)
 {
     int i, key, j;
@@ -53,8 +19,7 @@ void timeInsertionSort(Task arr[], int n)
     }
 }
 
-/*implementar sort alphabetico */
-
+/*change this function if possible, because it sorts a new array instead of sorting the already existing one, it's just a waste of resouces*/
 void alphabeticInsertionSort(Desc arr[], int n)
 {
     int i, j;
@@ -419,15 +384,14 @@ int taskmover()
     return 0;
 }
 
-/*ver esta função melhor
-falta dar sort do output*/
+/* falta dar sort do output alfabeticamente*/
 int listtasks() 
 {
-    int i = 0, l, k;
-    int h = 1; 
-    int time [MAX_ID+1];
+    int i = 0, l;
+    int h = 1;
+    /* int time [MAX_ID+1]; */
     Task localVector[MAX_ID+1];
-    boolean noActFound = TRUE;
+    /* boolean noActFound = TRUE; */
     char variables[MAX_STRING_SIZE];
 
     fgets(variables, MAX_STRING_SIZE, stdin);
