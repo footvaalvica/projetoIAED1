@@ -99,7 +99,7 @@ void timeSort(Task a[], int left, int right)
     merge(a, left, m, right);
 }
 
-/* merge sort merge function */
+/* Merge function for the merge sort algorithm */
 void merge(Task a[], int left, int m, int right) {
     int i, j, k;
     for (i = m+1; i > left; i--)
