@@ -1,7 +1,7 @@
 /*
   Ficheiro: proj1.c
-  Autor: Bruno Miguel da Silva Mendes ist199282/al99282
-  Descricao: Ponto de entrada para o projeto de IAED19/20
+  Autor: Mateus Leite Pinho ist199282/al99282
+  Descricao: Ponto de entrada para o projeto de IAED20/21
 */
 
 #include <stdio.h>
@@ -9,8 +9,10 @@
 
 int main () 
 {   
+    /*Variavel que contem o comando a ser executado*/
     char command;
-    /* Reads which command is going to be executed */
+    /*Le carateres da stdin ate encontrar o caso terminal ou 
+    um comando a executar*/
     do {
         scanf("%c", &command);
         switch(command) {
@@ -21,7 +23,7 @@ int main ()
             case 'l':
                 tasklister();
                 break;
-                
+
             case 'n':
                 increaser();
                 break;
