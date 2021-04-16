@@ -25,6 +25,14 @@
 /* success code */
 #define SUCCESS 0
 
+/* string defines */
+#define TOO_MANY_TASKS "too many tasks\n"
+#define DUPLICATE_DESCRIPTION "duplicate description\n"
+#define INVALID_DURATION "invalid duration\n"
+#define TO_DO "TO DO"
+#define TASK_PRINTF "task %d\n"
+#define NO_SUCH_TASK "%d: no such task\n" 
+
 /*defines activity string */
 typedef char Act[ACT_SIZE+1];
 /*defines user string */
@@ -143,19 +151,18 @@ int task()
     int dur = 0, i = 0, l, k;
     char desc[DESC_SIZE], *token, variables[MAX_STRING_SIZE];
     const char s[2] = " "; /*const para o strtok*/
+    /* inicializar desc a 0 */
+    strcpy(desc, "");
 
     /* lidar com o erro de muitos ids */
     if (id >= MAX_ID) {
-        printf("too many tasks\n");
+        printf(TOO_MANY_TASKS);
         return ERROR;
     }
 
     /* buscar o input */
     fgets(variables, MAX_STRING_SIZE, stdin);
 
-    /* inicializar desc a 0 */
-    strcpy(desc, "");
-    
     /* divides the input based on spaces */
     token = strtok(variables, s);
     while(token != NULL) {
@@ -174,11 +181,10 @@ int task()
     for (l = 0; desc[l] != '\0'; l++) {}
     desc[l-2] = '\0';
 
-
     /* procurar duplicate descriptions */
     for (k = 1; k <= id; k++) {
         if (strcmp(tasks[k].desc, desc) == 0) {
-            printf("duplicate description\n");
+            printf(DUPLICATE_DESCRIPTION);
             /* remove last white space from string*/
             strcpy(desc, "");
             return ERROR;
@@ -187,7 +193,7 @@ int task()
 
     /* ver se dur >= 0 */
     if (dur < 0) {
-        printf("invalid duration\n");
+        printf(INVALID_DURATION);
         return ERROR;
     }
 
@@ -195,7 +201,7 @@ int task()
     local.id = id;  
     strcpy(local.desc, desc);
     strcpy(local.user, "0");
-    strcpy(local.act, "TO DO");
+    strcpy(local.act, TO_DO);
     local.dur = dur;
     local.inst = 0;
 
@@ -204,18 +210,27 @@ int task()
 
     /*colocação da tarefa na tabela*/
     tasks[id] = local;
-    printf("task %d\n", id);
+    printf(TASK_PRINTF, id);
     id++;    
     return SUCCESS;
 }
 
+/*
+  task: () -> int
+  Adiciona uma nova tarefa ao sistema.
+*/
 int tasklister()
 {
+    /* inicializar variaveis */
     int i = 0, l, k, h;
+    /* vetor para guardar todos os ids do input*/
     int ids[MAX_ID+1];
+    /* vetor que leva sort para nao alterar o original */
     Task localVector[MAX_ID+1];
+    /* variaveis para ler o input */
     char *token, variables[MAX_STRING_SIZE];
-    const char s[2] = " "; /*const para o strtok*/
+    /*const para o strtok*/
+    const char s[2] = " ";
 
     /* buscar o input */
     fgets(variables, MAX_STRING_SIZE, stdin);    
@@ -224,15 +239,20 @@ int tasklister()
     for (l = 0; variables[l] != '\0'; l++) {}
     variables[l-1] = '\0';
     
+    /* se a descrição for vazia */
     if (strcmp(variables, "") == 0) {
-        /*adicionar alphabetic sort*/
+        /* copiar todas as tarefas até ao numero de tarefas que existem
+        para outro vetor*/
         for (k = 1; k <= id; k++) {
             localVector[k] = tasks[k];
         }
         
-        /*dar o sort alphabetic */
+        /* sort alphabetically */
         alphabeticInsertionSort(localVector, 0, id);
 
+        /* loop que usa o vetor auxiliar para imprimir as coisas por ordem */
+        /* provavelmente a parte mais lenta da função, a ser otimizado, visto
+        que tem complexidade n^2 */
         for (k = 1; k <= id; k++) {
             for (h = 1; h < id; h++) {
                 if (strcmp(localVector[k].desc, tasks[h].desc) == 0) {
@@ -241,28 +261,31 @@ int tasklister()
                 }
             }
         }
-    return 0;
     } else {
-        /* analisar o input
-        ainda nao sei como é que vou lidar com isto, eles nao especificam */
+        /* analisar o input e dividir os ids */
         token = strtok(variables, s);
         while(token != NULL) {
             ids[i] = atoi(token);
             i++;
             if (atoi(token) >= id) {
-                printf("%d: no such task\n", id);
+                printf(NO_SUCH_TASK, id);
                 return ERROR;
             }
             token = strtok(NULL, s);
         }
+        /* dar print de todos os ids pela ordem do input*/
         for (k = 0; k < (id-1); k++) {
             printf("%d %s #%d %s\n", ids[k], tasks[ids[k]].act, 
             tasks[ids[k]].dur, tasks[ids[k]].desc);
         }
-    return 0;
     }
+    return SUCCESS;
 }
 
+/*
+  increaser: () -> int
+  Avança o tempo do sistema.
+*/
 int increaser()
 {
     int i;
@@ -295,6 +318,10 @@ int increaser()
     return 0;
 }
 
+/*
+  task: () -> int
+  Adiciona uma atividade ou lista todas as atividades.
+*/
 int activities() 
 {
     int i = 0, l;
@@ -353,6 +380,7 @@ int utilizador()
     int i = 0, l;
     char variables[MAX_STRING_SIZE];
 
+    /* storing input in a variable */
     fgets(variables, MAX_STRING_SIZE, stdin);
 
     /* remover o white space no inicio e o \n*/
@@ -365,38 +393,41 @@ int utilizador()
     /*proibir de ter whitespaces or maybe not assumo só q o 
     input está correto é ver o q dá*/
     
+    /* if input is null print out all users */
     if (strcmp(variables, "") == 0) {
-        /*prints all users */
         for (i = 0; i < MAX_USERS; i++)  {
             if (strcmp(users[i], "") != 0) {
                 printf("%s\n", users[i]);
             }   
         }
-        return 0;
+        return SUCCESS;
     }
 
     /*check if user already exists */
+    /* look through the whole vector for user */
     for (i = 0; i <= userCounter; i++) {
         if (strcmp(users[i],variables) == 0) {
             printf("user already exists\n");
-            return -1;
+            return ERROR;
         }
     }    
 
-    /* too many users */
+    /* check if there's too many users */
     if (userCounter == (MAX_USERS + 1)) {
         printf("too many users\n");
-        return -1;
+        return ERROR;
     }
 
     /*adds user*/
     strcpy(users[userCounter], variables);
     userCounter++;
-    return 0;
+    return SUCCESS;
 }
 
 int taskmover()
 {
+    /* inicializar variaveis */
+    /* idLocal, act e user sao para guardar o input */
     int i = 0, l, idLocal, k;
     char *token, variables[MAX_STRING_SIZE];
     Act act;
