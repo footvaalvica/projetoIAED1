@@ -84,7 +84,8 @@ int time = 0;
 /* prototypes */
 void timeSort(Task a[], int left, int right);
 void merge(Task a[], int left, int m, int right);
-void alphabeticInsertionSort(Task a[], int left, int right);
+void mergeAlphabetic(Task a[], int left, int m, int right);
+void alphabeticSort(Task a[], int left, int right);
 int tasklisterErrorCheck(int it, char *user, char *act);
 int task();
 int taskLister();
@@ -96,8 +97,10 @@ int listtasks();
 
 /* FUNCTIONS */
 
-/* ok ja tenho as funções quase todas :D */
-/* mudei os sorts para ficarem como os do prof */
+/*
+  timeSort: (Task, int, int) -> void
+  Usa merge sort para dar sort ao vetor por tempo na função listtasks()
+*/
 void timeSort(Task a[], int left, int right)
 {
     int m = (right+left)/2;
@@ -107,8 +110,12 @@ void timeSort(Task a[], int left, int right)
     merge(a, left, m, right);
 }
 
-/* Merge function for the merge sort algorithm */
-void merge(Task a[], int left, int m, int right) {
+/*
+  merge: (Task, int, int, int) -> void
+  Função merge para o merge sort
+*/
+void merge(Task a[], int left, int m, int right) 
+{
     int i, j, k;
     for (i = m+1; i > left; i--)
         aux[i-1] = a[i-1];
@@ -122,22 +129,37 @@ void merge(Task a[], int left, int m, int right) {
     }
 }
 
-void alphabeticInsertionSort(Task a[], int left, int right)
+/*
+  mergeAlphabetic: (Task, int, int, int) -> void
+  Função merge para o merge sort alfabetico
+*/
+void mergeAlphabetic(Task a[], int left, int m, int right)
 {
-    int i, j;
-    for (i = left+1; i <= right; i++) {
-        Task v = a[i];
-        j = i - 1;
- 
-        /* Move elements of arr[0..i-1], that are
-          greater than key, to one position ahead
-          of their current position */
-        while (j >= left && lessAlpha(v, a[j])) {
-            a[j + 1] = a[j];
-            j--;
-        }
-        a[j + 1] = v;
+    int i, j, k;
+    for (i = m+1; i > left; i--)
+        aux[i-1] = a[i-1];
+    for (j = m; j < right; j++)
+        aux[right+m-j] = a[j+1];
+    for (k = left; k <= right; k++) {
+        if (lessAlpha(aux[j], aux[i]) || i == m+1)
+            a[k] = aux[j--];
+        else
+            a[k] = aux[i++];
     }
+}
+
+/*
+  alphabeticSort: (Task, int, int) -> void
+  Usa merge sort para dar sort ao vetor alfabeticamente na função listtasks()
+  e funcao tasklister()
+*/
+void alphabeticSort(Task a[], int left, int right)
+{
+    int m = (right+left)/2;
+    if (right <= left) return;
+    alphabeticSort(a, left, m);
+    alphabeticSort(a, m+1, right);
+    mergeAlphabetic(a, left, m, right);
 }
 
 /*
@@ -216,8 +238,8 @@ int task()
 }
 
 /*
-  task: () -> int
-  Adiciona uma nova tarefa ao sistema.
+  tasklister: () -> int
+  Lista as tarefas.
 */
 int tasklister()
 {
@@ -248,7 +270,7 @@ int tasklister()
         }
         
         /* sort alphabetically */
-        alphabeticInsertionSort(localVector, 0, id);
+        alphabeticSort(localVector, 0, id);
 
         /* loop que usa o vetor auxiliar para imprimir as coisas por ordem */
         /* provavelmente a parte mais lenta da função, a ser otimizado, visto
@@ -287,10 +309,12 @@ int tasklister()
   Avança o tempo do sistema.
 */
 int increaser()
-{
+{   
+    /*inicializar variaveis */
     int i;
     char variables[MAX_STRING_SIZE];
 
+    /* ler input */
     fgets(variables, MAX_STRING_SIZE, stdin);
 
     /* remover o white space no inicio*/
@@ -299,14 +323,14 @@ int increaser()
     }
     
     /* error checking */
-    /* para verificar se é float estou à procurar do .*/
+    /* para verificar se é float estou a procurar o . na string*/
     for (i = 0; variables[i] != 0; i++) {
         if (variables[i] == '.') {
             printf("invalid time\n");
             return ERROR;
         }
     }
-
+    /* verificar se é menor que 0 */
     if (atoi(variables) < 0) {
         printf("invalid time\n");
         return ERROR;
@@ -315,11 +339,11 @@ int increaser()
     /* aumentar o global time */
     time += atoi(variables);
     printf("%d\n", time);
-    return 0;
+    return SUCCESS;
 }
 
 /*
-  task: () -> int
+  activities: () -> int
   Adiciona uma atividade ou lista todas as atividades.
 */
 int activities() 
@@ -375,8 +399,13 @@ int activities()
     return SUCCESS;
 }
 
+/*
+  utilizador: () -> int
+  Adiciona um utilizador ou lista todos os utilizadores.
+*/
 int utilizador() 
-{
+{   
+    /* inicializar variaveis */
     int i = 0, l;
     char variables[MAX_STRING_SIZE];
 
@@ -390,9 +419,6 @@ int utilizador()
     for (l = 0; variables[l] != '\0'; l++) {}
     variables[l-1] = '\0';
 
-    /*proibir de ter whitespaces or maybe not assumo só q o 
-    input está correto é ver o q dá*/
-    
     /* if input is null print out all users */
     if (strcmp(variables, "") == 0) {
         for (i = 0; i < MAX_USERS; i++)  {
@@ -404,7 +430,7 @@ int utilizador()
     }
 
     /*check if user already exists */
-    /* look through the whole vector for user */
+    /* look through the whole array for user */
     for (i = 0; i <= userCounter; i++) {
         if (strcmp(users[i],variables) == 0) {
             printf("user already exists\n");
@@ -424,6 +450,10 @@ int utilizador()
     return SUCCESS;
 }
 
+/*
+  taskmover: () -> int
+  Move uma tarefa de uma atvidade para outra.
+*/
 int taskmover()
 {
     /* inicializar variaveis */
@@ -518,8 +548,10 @@ int taskmover()
     return SUCCESS;
 }
 
-
-/* falta dar sort do output alfabeticamente*/
+/*
+  listtasks: () -> int
+  Lista todas as tarefas que estejam numa dada atividade.
+*/
 int listtasks() 
 {
     int i = 0, l;
@@ -549,7 +581,7 @@ int listtasks()
     /* check if values are equal and sort only if they are*/
     for (i = 0; i < h; i++) {
         if (localVector[i].toDoInst == localVector[i+1].toDoInst) {
-            alphabeticInsertionSort(localVector, i, i+1);
+            alphabeticSort(localVector, i, i+1);
         }
     }
 
