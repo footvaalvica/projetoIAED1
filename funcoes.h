@@ -32,6 +32,11 @@
 #define TO_DO "TO DO"
 #define TASK_PRINTF "task %d\n"
 #define NO_SUCH_TASK "%d: no such task\n" 
+#define INVALID_TIME "invalid time\n"
+#define INVALID_DESCRIPTION "invalid description\n"
+#define TOO_MANY_ACTIVITIES "too many activities\n"
+#define DUPLICATE_ACTIVITY "duplicate activity\n"
+
 
 /*defines activity string */
 typedef char Act[ACT_SIZE+1];
@@ -244,7 +249,7 @@ int task()
 int tasklister()
 {
     /* inicializar variaveis */
-    int i = 0, l, k, h;
+    int i = 0, l, k;
     /* vetor para guardar todos os ids do input*/
     int ids[MAX_ID+1];
     /* vetor que leva sort para nao alterar o original */
@@ -265,23 +270,17 @@ int tasklister()
     if (strcmp(variables, "") == 0) {
         /* copiar todas as tarefas até ao numero de tarefas que existem
         para outro vetor*/
-        for (k = 1; k <= id; k++) {
+        for (k = 0; k <= id; k++) {
             localVector[k] = tasks[k];
         }
         
         /* sort alphabetically */
         alphabeticSort(localVector, 0, id);
 
-        /* loop que usa o vetor auxiliar para imprimir as coisas por ordem */
-        /* provavelmente a parte mais lenta da função, a ser otimizado, visto
-        que tem complexidade n^2 */
-        for (k = 1; k <= id; k++) {
-            for (h = 1; h < id; h++) {
-                if (strcmp(localVector[k].desc, tasks[h].desc) == 0) {
-                    printf("%d %s #%d %s\n", tasks[h].id, tasks[h].act, 
-                    tasks[h].dur, tasks[h].desc);
-                }
-            }
+        /* print out results */
+        for (k = 2; k <= id; k++) {
+            printf("%d %s #%d %s\n", localVector[k].id, localVector[k].act, 
+            localVector[k].dur, localVector[k].desc);
         }
     } else {
         /* analisar o input e dividir os ids */
@@ -326,13 +325,13 @@ int increaser()
     /* para verificar se é float estou a procurar o . na string*/
     for (i = 0; variables[i] != 0; i++) {
         if (variables[i] == '.') {
-            printf("invalid time\n");
+            printf(INVALID_TIME);
             return ERROR;
         }
     }
     /* verificar se é menor que 0 */
     if (atoi(variables) < 0) {
-        printf("invalid time\n");
+        printf(INVALID_TIME);
         return ERROR;
     }
     
@@ -373,7 +372,7 @@ int activities()
     i = 0;
     while (variables[i] != '\0') {
         if (islower(variables[i]) != 0) {
-            printf("invalid description\n");
+            printf(INVALID_DESCRIPTION);
             return ERROR;
         }
         i++;
@@ -381,14 +380,14 @@ int activities()
 
     /* too many activities */
     if (actCounter == MAX_ACT) {
-        printf("too many activities\n");
+        printf(TOO_MANY_ACTIVITIES);
         return ERROR;
     }
 
     /* dups */
     for (i = 0; i < actCounter; i++)  {
         if (strcmp(acts[i], variables) == 0) {
-            printf("duplicate activity\n");
+            printf(DUPLICATE_ACTIVITY);
             return ERROR;
         }
     }
